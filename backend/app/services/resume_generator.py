@@ -57,8 +57,11 @@ def generate_ats_resume(data: dict) -> io.BytesIO:
         pdf.section_title("CERTIFICATIONS")
         pdf.body_text(data.get('certifications'))
     
-    # Buffer
+    # --- FIXED BUFFER LOGIC ---
     buffer = io.BytesIO()
-    pdf.output(buffer)
+    # dest='S' returns the PDF as a string, which we encode to bytes
+    pdf_bytes = pdf.output(dest='S').encode('latin1')
+    buffer.write(pdf_bytes)
     buffer.seek(0)
+    
     return buffer

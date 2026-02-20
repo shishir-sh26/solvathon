@@ -8,8 +8,8 @@ app = FastAPI(title="Placement Pro API")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=["http://localhost:5173"],  # <-- explicitly allow your Vite frontend
+    allow_credentials=True,                   # <-- changed to True
     allow_methods=["*"],
     allow_headers=["*"],
 )

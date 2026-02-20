@@ -1,3 +1,26 @@
+<<<<<<< Updated upstream
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+python-multipart
+python-dotenv
+google-generativeai
+langchain
+langchain-google-genai
+langchain-community
+langchain-huggingface
+sentence-transformers
+supabase
+PyMuPDF
+pdfplumber
+httpx
+vecs
+python-jose[cryptography]
+passlib[bcrypt]
+email-validator
+fpdf2
+=======
 aiohappyeyeballs==2.6.1
 aiohttp==3.13.3
 aiosignal==1.4.0
@@ -18,12 +41,10 @@ Deprecated==1.2.18
 deprecation==2.1.0
 distro==1.9.0
 ecdsa==0.19.1
-email-validator
 fastapi==0.129.0
 filelock==3.24.3
 filetype==1.2.0
 flupy==1.2.3
-fpdf2
 frozenlist==1.8.0
 fsspec==2026.2.0
 google-ai-generativelanguage==0.6.15
@@ -144,3 +165,4 @@ wrapt==1.17.3
 xxhash==3.6.0
 yarl==1.22.0
 zstandard==0.25.0
+>>>>>>> Stashed changes
