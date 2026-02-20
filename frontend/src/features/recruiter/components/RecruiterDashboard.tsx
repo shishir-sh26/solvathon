@@ -26,6 +26,7 @@ export default function RecruiterDashboard() {
   // Search & Matching Engine State
   const [searchQuery, setSearchQuery] = useState('');
   const [isMatching, setIsMatching] = useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   // --- LOGOUT HANDLER ---
   const handleLogout = () => {
@@ -35,28 +36,50 @@ export default function RecruiterDashboard() {
   };
 
   // --- MATCHING ENGINE INTEGRATION ---
-  // This connects to the matching_engine.py via your FastAPI backend
   const handleMatchSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
     setIsMatching(true);
     try {
-      // API call to the backend which uses matching_engine.py
       const response = await fetch(`http://localhost:8000/api/recruiter/match?job_description=${encodeURIComponent(searchQuery)}`);
       if (!response.ok) throw new Error("Matching engine failed");
       
       const result = await response.json();
-      // Assuming result returns a list of matched students from your dummy dataset
       if (result.matches) {
         setCandidates(result.matches);
       }
       alert("AI Matching Engine: Students re-ranked based on your requirements.");
     } catch (error) {
       console.error("Match error:", error);
-      alert("Error connecting to Matching Engine. Using local filters.");
+      alert("Error connecting to Matching Engine.");
     } finally {
       setIsMatching(false);
+    }
+  };
+
+  // --- PDF REPORT GENERATION HANDLER ---
+  const handleDownloadReport = async () => {
+    setIsGeneratingReport(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/recruiter/reports/download');
+      if (!response.ok) throw new Error("Failed to generate report");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Hiring_Analytics_Report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      alert("Report generated and downloaded successfully!");
+    } catch (error) {
+      console.error("Report error:", error);
+      alert("Could not connect to the PDF Reporting Engine.");
+    } finally {
+      setIsGeneratingReport(false);
     }
   };
 
@@ -243,8 +266,12 @@ export default function RecruiterDashboard() {
               <BarChart size={48} className="mb-4 text-black" />
               <h4 className="font-black uppercase text-lg mb-2">Analytics Engine</h4>
               <p className="text-xs text-gray-700 font-bold uppercase mb-4">Generate predictive hiring reports based on your drive history.</p>
-              <button className="bg-black text-white border-2 border-black px-6 py-2 font-black uppercase text-xs hover:bg-gray-800 transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]">
-                Generate Full PDF Report
+              <button 
+                onClick={handleDownloadReport}
+                disabled={isGeneratingReport}
+                className="bg-black text-white border-2 border-black px-6 py-2 font-black uppercase text-xs hover:bg-gray-800 transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] disabled:opacity-50 flex items-center gap-2"
+              >
+                {isGeneratingReport ? <Loader2 className="animate-spin" size={14} /> : "Generate Full PDF Report"}
               </button>
             </div>
           </div>

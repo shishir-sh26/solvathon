@@ -1,21 +1,27 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-# 1. Import the router
 from app.api import recruiter 
 
 app = FastAPI(title="PlacementPro API")
 
-# CORS Setup
+# Essential CORS for React + FastAPI communication
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 2. Register the router with the correct prefix
-# This turns the "/match" route into "/api/recruiter/match"
+# REGISTER ROUTER
+# This MUST match the path in your frontend fetch request
 app.include_router(recruiter.router, prefix="/api/recruiter", tags=["Recruiter"])
+
+@app.on_event("startup")
+async def startup_event():
+    print("--- API ROUTES LOADED ---")
+    for route in app.routes:
+        print(f"Path: {route.path}")
 
 @app.get("/")
 async def root():
