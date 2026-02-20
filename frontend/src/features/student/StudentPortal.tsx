@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // <-- MERGED: Navigation hook for Sign Out
 import {
   Bell, Search, User, Briefcase, Video, FileText,
   Youtube, TrendingUp, CheckCircle, Users, Calendar as CalendarIcon, UploadCloud,
   ChevronRight, LogOut, Settings, X, Target, ArrowRight, AlertCircle, Phone, Award, GraduationCap
 } from 'lucide-react';
 
-// Import your Chatbot component
-import StudentChatBot from './components/StudentChatBot';
 // --- NEW IMPORT: Bring in the Skill Suggestions Component ---
 import SkillSuggestions from './components/SkillSuggestions';
 
 export default function StudentPortal() {
+  const navigate = useNavigate(); // <-- MERGED: Initialized navigate
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
@@ -49,6 +49,7 @@ export default function StudentPortal() {
   // Mock ID for current development session
   const mockId = "00000000-0000-0000-0000-000000000000";
 
+  // --- TEAMMATE'S CODE: Fetch Profile ---
   React.useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -84,6 +85,7 @@ export default function StudentPortal() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // --- TEAMMATE'S CODE: Submit Profile to Backend ---
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -110,9 +112,6 @@ export default function StudentPortal() {
         certifications: formData.certifications
       };
 
-      // In a real app, 'id' comes from Auth. Using mock ID for now.
-      const mockId = "00000000-0000-0000-0000-000000000000";
-
       const response = await fetch(`http://localhost:8000/api/student/profile/${mockId}`, {
         method: 'PUT',
         headers: {
@@ -135,18 +134,7 @@ export default function StudentPortal() {
     }
   };
 
-  const navItems = [
-    { id: 'dashboard', label: 'DASHBOARD', icon: CalendarIcon },
-    { id: 'placements', label: 'PLACEMENTS', icon: Briefcase },
-    { id: 'applications', label: 'APPLICATION TRACK', icon: CheckCircle },
-    { id: 'interviews', label: 'VIRTUAL INTERVIEWS', icon: Video },
-    { id: 'resume', label: 'ATS RESUME BUILDER', icon: FileText },
-    { id: 'skills', label: 'SKILL IMPROVEMENT', icon: TrendingUp },
-    { id: 'learning', label: 'LEARN & GROW', icon: Youtube }, // This is the trigger tab
-    { id: 'mentors', label: 'ALUMNI MENTORS', icon: Users },
-    { id: 'upload', label: 'VERIFY CREDENTIALS', icon: UploadCloud },
-  ];
-
+  // --- TEAMMATE'S CODE: Resume Generation ---
   const [isGeneratingResume, setIsGeneratingResume] = React.useState(false);
 
   const handleDownloadResume = async () => {
@@ -172,6 +160,25 @@ export default function StudentPortal() {
       setIsGeneratingResume(false);
     }
   };
+
+  // --- MERGED: SIGN OUT FUNCTION ---
+  const handleSignOut = () => {
+    localStorage.removeItem('currentUserRole');
+    window.dispatchEvent(new Event('logout'));
+    navigate('/');
+  };
+
+  const navItems = [
+    { id: 'dashboard', label: 'DASHBOARD', icon: CalendarIcon },
+    { id: 'placements', label: 'PLACEMENTS', icon: Briefcase },
+    { id: 'applications', label: 'APPLICATION TRACK', icon: CheckCircle },
+    { id: 'interviews', label: 'VIRTUAL INTERVIEWS', icon: Video },
+    { id: 'resume', label: 'ATS RESUME BUILDER', icon: FileText },
+    { id: 'skills', label: 'SKILL IMPROVEMENT', icon: TrendingUp },
+    { id: 'learning', label: 'LEARN & GROW', icon: Youtube },
+    { id: 'mentors', label: 'ALUMNI MENTORS', icon: Users },
+    { id: 'upload', label: 'VERIFY CREDENTIALS', icon: UploadCloud },
+  ];
 
   return (
     <div className="flex h-screen bg-white text-black font-sans selection:bg-black selection:text-white relative">
@@ -250,14 +257,17 @@ export default function StudentPortal() {
 
                 {/* Profile Actions */}
                 <div className="flex flex-col">
-                  {/* TRIGGER FOR THE MASSIVE FORM MODAL */}
                   <button
                     onClick={() => { setIsEditProfileModalOpen(true); setIsProfileDropdownOpen(false); }}
                     className="flex items-center p-4 hover:bg-black hover:text-white font-black uppercase text-sm border-b-2 border-black transition-colors"
                   >
                     <Settings className="w-5 h-5 mr-3" /> Update Master Profile
                   </button>
-                  <button className="flex items-center p-4 hover:bg-red-500 hover:text-white font-black uppercase text-sm transition-colors text-red-600">
+                  {/* --- MERGED: LOGOUT BUTTON WIRED HERE --- */}
+                  <button 
+                    onClick={handleSignOut}
+                    className="flex items-center p-4 hover:bg-red-500 hover:text-white font-black uppercase text-sm transition-colors text-red-600"
+                  >
                     <LogOut className="w-5 h-5 mr-3" /> Sign Out
                   </button>
                 </div>
@@ -314,7 +324,7 @@ export default function StudentPortal() {
             </div>
           )}
 
-          {/* --- NEW VIEW: LEARN & GROW --- */}
+          {/* VIEW: LEARN & GROW */}
           {activeTab === 'learning' && (
             <div className="max-w-7xl mx-auto animate-in fade-in duration-300">
               <SkillSuggestions />
@@ -450,9 +460,6 @@ export default function StudentPortal() {
           </div>
         </div>
       )}
-
-      {/* Injecting the Student Chatbot Component here */}
-      <StudentChatBot />
 
     </div>
   );
