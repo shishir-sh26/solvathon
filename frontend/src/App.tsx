@@ -8,16 +8,18 @@ import TpoPage from './pages/TpoPage';
 import RecruiterPage from './pages/RecruiterPage';
 
 function App() {
+  // Pull initial role from localStorage
   const [role, setRole] = useState<string | null>(localStorage.getItem('currentUserRole'));
 
   useEffect(() => {
     const syncRole = () => {
+      // Update local state when localStorage changes
       setRole(localStorage.getItem('currentUserRole'));
     };
 
+    // Listen for custom events and browser storage sync
     window.addEventListener('login-success', syncRole);
     window.addEventListener('storage', syncRole);
-    // Add a logout listener
     window.addEventListener('logout', syncRole);
 
     return () => {
@@ -30,12 +32,13 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Routes>
-        {/* If no role, ALWAYS show Auth. If role exists, redirect to specific dashboard */}
+        {/* PUBLIC ROUTE: If no role, show Auth. Otherwise, redirect to dashboard */}
         <Route 
           path="/" 
           element={!role ? <Auth /> : <Navigate to={`/${role.toLowerCase()}`} replace />} 
         />
 
+        {/* PROTECTED ROUTES: Verify role before rendering page */}
         <Route 
           path="/student" 
           element={role === 'STUDENT' ? <StudentPage /> : <Navigate to="/" replace />} 
@@ -51,6 +54,7 @@ function App() {
           element={role === 'RECRUITER' ? <RecruiterPage /> : <Navigate to="/" replace />} 
         />
         
+        {/* Fallback for invalid paths */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

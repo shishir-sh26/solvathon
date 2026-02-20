@@ -2,7 +2,17 @@ from fpdf import FPDF
 import io
 
 class ResumePDF(FPDF):
+    def __init__(self, student_name, email, phone, location):
+        # Initialize the parent FPDF class
+        super().__init__()
+        # Set instance variables BEFORE adding any pages
+        self.student_name = student_name
+        self.email = email
+        self.phone = phone
+        self.location = location
+
     def header(self):
+        # Header logic triggers automatically on add_page()
         self.set_font('helvetica', 'B', 20)
         self.cell(0, 10, self.student_name, ln=True, align='C')
         self.set_font('helvetica', '', 10)
@@ -23,12 +33,15 @@ class ResumePDF(FPDF):
         self.ln(3)
 
 def generate_ats_resume(data: dict) -> io.BytesIO:
-    pdf = ResumePDF()
-    pdf.student_name = data.get('full_name', 'Student Name').upper()
-    pdf.email = data.get('email', '')
-    pdf.phone = data.get('phone', '')
-    pdf.location = data.get('branch', '')
+    # 1. Initialize custom class with data
+    pdf = ResumePDF(
+        student_name=data.get('full_name', 'Student Name').upper(),
+        email=data.get('email', ''),
+        phone=data.get('phone', ''),
+        location=data.get('branch', '')
+    )
     
+    # 2. Add page (this triggers header())
     pdf.add_page()
     
     # Education Section
@@ -57,11 +70,11 @@ def generate_ats_resume(data: dict) -> io.BytesIO:
         pdf.section_title("CERTIFICATIONS")
         pdf.body_text(data.get('certifications'))
     
-    # --- FIXED BUFFER LOGIC ---
+    # --- FIXED BUFFER LOGIC FOR fpdf2 ---
     buffer = io.BytesIO()
-    # dest='S' returns the PDF as a string, which we encode to bytes
-    pdf_bytes = pdf.output(dest='S').encode('latin1')
-    buffer.write(pdf_bytes)
+    # In fpdf2, .output() without arguments returns a bytearray directly
+    pdf_output = pdf.output()
+    buffer.write(pdf_output)
     buffer.seek(0)
     
     return buffer

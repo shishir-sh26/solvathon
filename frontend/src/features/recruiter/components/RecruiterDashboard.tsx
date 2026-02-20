@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Users, FileCheck, BarChart, Send, CheckSquare, XSquare } from 'lucide-react';
-// import ChatWindow from '../../placement-bot/components/ChatWindow'; // Uncomment if you want the bot here too
+import { Users, FileCheck, BarChart, Send, CheckSquare, XSquare, LogOut } from 'lucide-react';
+// import ChatWindow from '../../placement-bot/components/ChatWindow'; 
 
 // --- MOCK DATA ---
 const mockCandidates = [
@@ -18,6 +18,13 @@ const mockHistoricalData = [
 export default function RecruiterDashboard() {
   const [activeTab, setActiveTab] = useState<'pipeline' | 'docs' | 'reports'>('pipeline');
   const [candidates, setCandidates] = useState(mockCandidates);
+
+  // --- LOGOUT HANDLER ---
+  const handleLogout = () => {
+    localStorage.removeItem('currentUserRole');
+    window.dispatchEvent(new Event('logout'));
+    window.location.href = "/";
+  };
 
   const handleNotify = (target: 'Student' | 'TPO') => {
     alert(`System Jarvis: Notification sent to ${target}s regarding upcoming interview slots.`);
@@ -39,6 +46,10 @@ export default function RecruiterDashboard() {
             <p className="text-gray-600 mt-1 font-bold">Company: TechNova Global • Active Drive: Software Engineer Intern</p>
           </div>
           <div className="flex gap-2">
+            {/* ADDED LOGOUT BUTTON */}
+            <button onClick={handleLogout} className="bg-red-500 text-white border-2 border-black px-4 py-2 font-bold text-sm hover:bg-red-600 flex items-center gap-2 transition-colors">
+              <LogOut size={16} /> Logout
+            </button>
             <button onClick={() => handleNotify('TPO')} className="bg-white border-2 border-black px-4 py-2 font-bold text-sm hover:bg-gray-100 flex items-center gap-2">
               <Send size={16} /> Notify TPO
             </button>
@@ -92,7 +103,6 @@ export default function RecruiterDashboard() {
                       <td className="p-3 border-r border-gray-300">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-lg">{c.matchScore}%</span>
-                          {/* Visual progress bar */}
                           <div className="w-24 h-2 bg-gray-300 border border-black overflow-hidden">
                             <div className="h-full bg-black" style={{ width: `${c.matchScore}%` }}></div>
                           </div>
@@ -181,7 +191,6 @@ export default function RecruiterDashboard() {
         )}
 
       </div>
-      {/* <ChatWindow /> // Add this if you want the recruiter to also have access to the bot from within this component file */}
     </>
   );
 }
