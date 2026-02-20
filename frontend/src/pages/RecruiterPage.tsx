@@ -1,13 +1,10 @@
-import React from 'react';
-import RecruiterDashboard from '../features/recruiter/components/RecruiterDashboard';
-import Layout from '../shared/components/Layout';
+import RecruiterDashboard from '../features/recruiter/components/RecruiterDashboard'
 
-const RecruiterPage: React.FC = () => {
+export default function RecruiterPage() {
   return (
-    <Layout>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">Recruiter Portal</h2>
       <RecruiterDashboard />
-    </Layout>
-  );
-};
-
-export default RecruiterPage;
+    </div>
+  )
+}

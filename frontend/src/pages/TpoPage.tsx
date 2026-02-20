@@ -1,13 +1,14 @@
-import React from 'react';
-import TPODashboard from '../features/tpo/TPODashboard';
-import Layout from '../shared/components/Layout';
+import TPODashboard from '../features/tpo/TPODashboard'
+import MarketIntelligence from '../features/analytics/MarketIntelligence'
+import ChatWindow from '../features/shared/placementBot/components/ChatWindow'
 
-const TpoPage: React.FC = () => {
+export default function TpoPage() {
   return (
-    <Layout>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">Placement Officer (TPO) Dashboard</h2>
       <TPODashboard />
-    </Layout>
-  );
-};
-
-export default TpoPage;
+      <MarketIntelligence />
+      <ChatWindow context="tpo" />
+    </div>
+  )
+}

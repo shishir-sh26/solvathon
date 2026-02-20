@@ -1,36 +1,36 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-const queryClient = new QueryClient();
-
-import Layout from './shared/components/Layout';
-import Auth from './features/auth/Auth';
-import ChatWindow from './features/shared/placementBot/components/ChatWindow';
-import AlumniConnect from './features/alumni-connect/AlumniConnect';
-import MarketIntelligence from './features/analytics/MarketIntelligence';
-import VirtualInterview from './features/interview/components/InterviewPanel';
-import StudentPage from './pages/StudentPage';
-import TpoPage from './pages/TpoPage';
-import RecruiterPage from './pages/RecruiterPage';
+import { Routes, Route, Link } from 'react-router-dom'
+import StudentPage from './pages/StudentPage'
+import TpoPage from './pages/TpoPage'
+import RecruiterPage from './pages/RecruiterPage'
+import Auth from './features/auth/Auth'
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
+      {/* Global Navigation Bar */}
+      <nav className="bg-blue-900 text-white p-4 shadow-md">
+        <div className="container mx-auto flex justify-between items-center">
+          <h1 className="text-xl font-bold tracking-wider">PLACEMENT PRO</h1>
+          <div className="space-x-4">
+            <Link to="/" className="hover:text-blue-300">Login</Link>
+            <Link to="/student" className="hover:text-blue-300">Student Portal</Link>
+            <Link to="/tpo" className="hover:text-blue-300">TPO Dashboard</Link>
+            <Link to="/recruiter" className="hover:text-blue-300">Recruiter</Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Page Routing */}
+      <main className="container mx-auto p-4 mt-4">
         <Routes>
-          <Route path="/" element={<Layout><div className="max-w-4xl mx-auto py-20 text-center"><h1 className="text-6xl font-extrabold text-gray-900 tracking-tight">Accelerate Your <span className="text-primary-600">Career</span> with AI</h1><p className="mt-8 text-xl text-gray-500 leading-relaxed">The ultimate ecosystem for TPOs, Students, and Alumni to drive placement success.</p><div className="mt-10 flex justify-center gap-4"><button className="px-8 py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 shadow-lg shadow-primary-200 transition-all">Get Started</button><button className="px-8 py-3 bg-white text-gray-700 border border-gray-200 rounded-xl font-semibold hover:bg-gray-50 transition-all">Learn More</button></div></div></Layout>} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/tpo/*" element={<TpoPage />} />
-          <Route path="/student/*" element={<StudentPage />} />
+          <Route path="/" element={<Auth />} />
+          <Route path="/student" element={<StudentPage />} />
+          <Route path="/tpo" element={<TpoPage />} />
           <Route path="/recruiter" element={<RecruiterPage />} />
-          <Route path="/alumni" element={<AlumniConnect />} />
-          <Route path="/analytics" element={<MarketIntelligence />} />
-          <Route path="/interview" element={<VirtualInterview />} />
         </Routes>
-        <ChatWindow />
-      </Router>
-    </QueryClientProvider>
-  );
+      </main>
+    </div>
+  )
 }
 
-export default App;
+export default App

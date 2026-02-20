@@ -7,7 +7,11 @@ python-dotenv
 google-generativeai
 langchain
 langchain-google-genai
+langchain-community
+langchain-huggingface
+sentence-transformers
 supabase
 PyMuPDF
 pdfplumber
 httpx
+vecs

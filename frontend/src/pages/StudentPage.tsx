@@ -1,13 +1,18 @@
-import React from 'react';
-import StudentPortal from '../features/student/StudentPortal'; // Keeping old path for now until I confirm move
-import Layout from '../shared/components/Layout';
+import StudentPortal from '../features/student/StudentPortal'
+import InterviewPanel from '../features/interview/components/InterviewPanel'
+import AlumniConnect from '../features/alumni-connect/AlumniConnect'
+import ChatWindow from '../features/shared/placementBot/components/ChatWindow'
 
-const StudentPage: React.FC = () => {
+export default function StudentPage() {
   return (
-    <Layout>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">Student Dashboard</h2>
       <StudentPortal />
-    </Layout>
-  );
-};
-
-export default StudentPage;
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <InterviewPanel />
+        <AlumniConnect />
+      </div>
+      <ChatWindow context="student" />
+    </div>
+  )
+}
