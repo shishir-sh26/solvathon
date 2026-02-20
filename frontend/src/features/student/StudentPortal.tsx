@@ -9,6 +9,7 @@ import {
 import StudentChatBot from './components/StudentChatBot';
 // --- NEW IMPORT: Bring in the Skill Suggestions Component ---
 import SkillSuggestions from './components/SkillSuggestions';
+import InterviewView from './components/InterviewView';
 
 export default function StudentPortal() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -318,6 +319,13 @@ export default function StudentPortal() {
           {activeTab === 'learning' && (
             <div className="max-w-7xl mx-auto animate-in fade-in duration-300">
               <SkillSuggestions />
+            </div>
+          )}
+
+          {/* --- NEW VIEW: VIRTUAL INTERVIEWS --- */}
+          {activeTab === 'interviews' && (
+            <div className="max-w-7xl mx-auto animate-in fade-in duration-300 space-y-8">
+              <InterviewView studentId={mockId} studentName={studentData.name} />
             </div>
           )}
 

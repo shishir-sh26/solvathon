@@ -11,6 +11,19 @@ class LLMService:
         response = self.model.generate_content(prompt)
         return response.text
 
+    async def generate_json(self, prompt: str) -> list:
+        # Request JSON output from Gemini
+        response = self.model.generate_content(
+            prompt + "\nReturn ONLY valid JSON.",
+            generation_config={"response_mime_type": "application/json"}
+        )
+        try:
+            import json
+            return json.loads(response.text)
+        except Exception as e:
+            print(f"JSON Parsing Error: {str(e)}")
+            return []
+
     async def get_structured_json(self, prompt: str) -> str:
         # Simple wrapper for now, can be extended for structured output
         response = self.model.generate_content(prompt + "\nReturn ONLY valid JSON.")
