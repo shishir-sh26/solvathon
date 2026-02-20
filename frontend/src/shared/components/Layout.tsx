@@ -1,31 +1,26 @@
-import React from 'react';
+import { ReactNode } from 'react';
+import { useAppStore } from '../../store/useAppStore';
 
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface LayoutProps {
+  children: ReactNode;
+}
+
+export default function Layout({ children }: LayoutProps) {
+  const { userRole, setUserRole } = useAppStore();
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold">P</div>
-            <span className="text-xl font-bold text-gray-900 italic">PLACEMENT PRO</span>
-          </div>
-          <nav className="flex items-center gap-6">
-            <button className="text-sm font-medium text-gray-500 hover:text-primary-600">Features</button>
-            <button className="text-sm font-medium text-gray-500 hover:text-primary-600">Alumni</button>
-            <button className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors">Sign In</button>
-          </nav>
+    <div className="min-h-screen bg-gray-100 text-black font-sans selection:bg-gray-300 relative">
+      <nav className="border-b-4 border-black bg-white px-6 py-4 flex justify-between items-center sticky top-0 z-40">
+        <h1 className="text-xl font-black uppercase tracking-widest">PlacementPro</h1>
+        <div className="flex gap-4">
+          <button onClick={() => setUserRole('TPO')} className={`text-sm font-bold uppercase ${userRole === 'TPO' ? 'border-b-2 border-black' : 'text-gray-500'}`}>TPO</button>
+          <button onClick={() => setUserRole('STUDENT')} className={`text-sm font-bold uppercase ${userRole === 'STUDENT' ? 'border-b-2 border-black' : 'text-gray-500'}`}>Student</button>
         </div>
-      </header>
-      <main className="flex-1">
+      </nav>
+
+      <main className="max-w-7xl mx-auto p-6">
         {children}
       </main>
-      <footer className="bg-white border-t py-8">
-        <div className="max-w-7xl mx-auto px-4 text-center text-gray-400 text-sm">
-          &copy; 2024 Placement Pro. Accelerating Careers with AI.
-        </div>
-      </footer>
     </div>
   );
-};
-
-export default Layout;
+}
