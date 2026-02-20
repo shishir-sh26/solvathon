@@ -1,43 +1,57 @@
+// src/App.tsx
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAppStore } from './store/useAppStore';
+import { useState, useEffect } from 'react';
 
 import Auth from './features/auth/Auth';
-import Layout from './shared/components/Layout';
 import StudentPage from './pages/StudentPage';
 import TpoPage from './pages/TpoPage';
 import RecruiterPage from './pages/RecruiterPage';
 
 function App() {
-  // Check the global login status
-  const { userRole } = useAppStore();
+  const [role, setRole] = useState<string | null>(localStorage.getItem('currentUserRole'));
+
+  useEffect(() => {
+    const syncRole = () => {
+      setRole(localStorage.getItem('currentUserRole'));
+    };
+
+    window.addEventListener('login-success', syncRole);
+    window.addEventListener('storage', syncRole);
+    // Add a logout listener
+    window.addEventListener('logout', syncRole);
+
+    return () => {
+      window.removeEventListener('login-success', syncRole);
+      window.removeEventListener('storage', syncRole);
+      window.removeEventListener('logout', syncRole);
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
+    <div className="min-h-screen bg-gray-50">
       <Routes>
-        {/* PUBLIC ROUTE: The Login Screen */}
+        {/* If no role, ALWAYS show Auth. If role exists, redirect to specific dashboard */}
         <Route 
           path="/" 
-          element={userRole ? <Navigate to={`/${userRole.toLowerCase()}`} /> : <Auth />} 
+          element={!role ? <Auth /> : <Navigate to={`/${role.toLowerCase()}`} replace />} 
         />
 
-        {/* PROTECTED ROUTES: Only accessible if logged in */}
         <Route 
           path="/student" 
-          element={userRole === 'STUDENT' ? <Layout><StudentPage /></Layout> : <Navigate to="/" />} 
+          element={role === 'STUDENT' ? <StudentPage /> : <Navigate to="/" replace />} 
         />
         
         <Route 
           path="/tpo" 
-          element={userRole === 'TPO' ? <Layout><TpoPage /></Layout> : <Navigate to="/" />} 
+          element={role === 'TPO' ? <TpoPage /> : <Navigate to="/" replace />} 
         />
         
         <Route 
           path="/recruiter" 
-          element={userRole === 'RECRUITER' ? <Layout><RecruiterPage /></Layout> : <Navigate to="/" />} 
+          element={role === 'RECRUITER' ? <RecruiterPage /> : <Navigate to="/" replace />} 
         />
         
-        {/* Fallback for unknown URLs */}
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
   );
