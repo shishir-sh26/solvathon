@@ -17,6 +17,7 @@ interface AppState {
   approvedUsers: UserData[];
   pendingUsers: UserData[];
   requestAccess: (email: string, role: UserRole) => void;
+  directRegister: (email: string, role: UserRole) => void; // New function
   approveUser: (email: string) => void;
   rejectUser: (email: string) => void;
 }
@@ -27,12 +28,17 @@ export const useAppStore = create<AppState>((set) => ({
   isBotOpen: false,
   toggleBot: () => set((state) => ({ isBotOpen: !state.isBotOpen })),
 
-  // Pre-approved Admin account so you don't get locked out!
   approvedUsers: [{ email: 'admin@college.edu', role: 'TPO' }],
   pendingUsers: [],
 
+  // For Students and Recruiters
   requestAccess: (email, role) => set((state) => ({
     pendingUsers: [...state.pendingUsers, { email, role }]
+  })),
+
+  // For TPOs - Skip the queue
+  directRegister: (email, role) => set((state) => ({
+    approvedUsers: [...state.approvedUsers, { email, role }]
   })),
 
   approveUser: (email) => set((state) => {
