@@ -6,12 +6,14 @@ ChevronRight, LogOut, Settings, X, Target, ArrowRight, AlertCircle, Phone, Award
 
 // Import your Chatbot component
 import StudentChatBot from './components/StudentChatBot';
+// --- NEW IMPORT: Bring in the Skill Suggestions Component ---
+import SkillSuggestions from './components/SkillSuggestions'; 
 
 export default function StudentPortal() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   
-  // NEW STATE: Controls the massive profile edit modal
+  // STATE: Controls the massive profile edit modal
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
 
   // Mock initial data
@@ -63,7 +65,7 @@ export default function StudentPortal() {
     { id: 'interviews', label: 'VIRTUAL INTERVIEWS', icon: Video },
     { id: 'resume', label: 'ATS RESUME BUILDER', icon: FileText },
     { id: 'skills', label: 'SKILL IMPROVEMENT', icon: TrendingUp },
-    { id: 'learning', label: 'LEARN & GROW', icon: Youtube },
+    { id: 'learning', label: 'LEARN & GROW', icon: Youtube }, // This is the trigger tab
     { id: 'mentors', label: 'ALUMNI MENTORS', icon: Users },
     { id: 'upload', label: 'VERIFY CREDENTIALS', icon: UploadCloud },
   ];
@@ -155,7 +157,8 @@ export default function StudentPortal() {
 
         {/* DYNAMIC VIEWS */}
         <div className="flex-1 overflow-y-auto p-8 lg:p-12">
-          {/* DASHBOARD VIEW */}
+          
+          {/* VIEW: DASHBOARD */}
           {activeTab === 'dashboard' && (
             <div className="space-y-8 max-w-7xl mx-auto">
               <div className="flex justify-between items-end border-b-4 border-black pb-4">
@@ -199,12 +202,20 @@ export default function StudentPortal() {
               </div>
             </div>
           )}
+
+          {/* --- NEW VIEW: LEARN & GROW --- */}
+          {activeTab === 'learning' && (
+            <div className="max-w-7xl mx-auto animate-in fade-in duration-300">
+              <SkillSuggestions />
+            </div>
+          )}
+
         </div>
       </main>
 
       {/* ================= MASSIVE PROFILE EDIT MODAL ================= */}
       {isEditProfileModalOpen && (
-        <div className="fixed inset-0 z-9999 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 overflow-y-auto">
+        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 overflow-y-auto">
           
           <div className="bg-white border-4 border-black shadow-[16px_16px_0px_0px_rgba(253,224,71,1)] w-full max-w-4xl p-8 md:p-12 relative my-auto">
             
