@@ -17,28 +17,29 @@ export default function Auth() {
     if (!email) return alert("Please enter an email address.");
 
     if (isSignUp) {
-      // Check if already exists
       const exists = [...approvedUsers, ...pendingUsers].some(u => u.email === email);
       if (exists) return alert("This email is already registered.");
 
       if (selectedRole === 'TPO') {
-        // DIRECT LOGIN FOR TPO
         directRegister(email, 'TPO');
         setUserRole('TPO');
-        alert("TPO Account created successfully!");
+        alert("TPO Account created! Redirecting to Dashboard...");
         navigate('/tpo');
       } else {
-        // APPROVAL REQUIRED FOR OTHERS
         requestAccess(email, selectedRole);
-        alert("Registration submitted! Please wait for TPO approval.");
+        alert(`Request sent! Please wait for TPO to approve your ${selectedRole} account.`);
         setIsSignUp(false);
       }
-      setEmail('');
-      setPassword('');
     } else {
-      // Login Logic
+      // LOGIN LOGIC WITH ROLE CHECK
       const user = approvedUsers.find(u => u.email === email);
+      
       if (user) {
+        // Check if the role they selected matches their registered role
+        if (user.role !== selectedRole) {
+          return alert(`This email is registered as a ${user.role}, not a ${selectedRole}.`);
+        }
+        
         setUserRole(user.role);
         navigate(`/${user.role.toLowerCase()}`);
       } else if (pendingUsers.some(u => u.email === email)) {
@@ -56,11 +57,24 @@ export default function Auth() {
         <div className="text-center mb-8 border-b-4 border-black pb-6">
           <h1 className="text-3xl font-black uppercase tracking-widest mb-2">PlacementPro</h1>
           <p className="text-gray-600 font-bold text-sm">
-            {isSignUp ? 'Create Account' : 'Secure Login Portal'}
+            {isSignUp ? 'Create New Account' : 'Member Login'}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 mb-8">
+          {/* ROLE SELECTOR - Now visible for both Login and Sign Up */}
+          <div>
+            <label className="block text-sm font-bold uppercase mb-1">I am a...</label>
+            <select 
+              value={selectedRole} onChange={(e) => setSelectedRole(e.target.value as UserRole)}
+              className="w-full border-2 border-black p-3 font-bold bg-white focus:outline-none focus:bg-yellow-50"
+            >
+              <option value="STUDENT">Student</option>
+              <option value="RECRUITER">Recruiter</option>
+              <option value="TPO">TPO / Admin</option>
+            </select>
+          </div>
+
           <div>
             <label className="block text-sm font-bold uppercase mb-1">Email</label>
             <input 
@@ -69,6 +83,7 @@ export default function Auth() {
               placeholder="name@college.edu" required
             />
           </div>
+
           <div>
             <label className="block text-sm font-bold uppercase mb-1">Password</label>
             <input 
@@ -78,22 +93,8 @@ export default function Auth() {
             />
           </div>
 
-          {isSignUp && (
-            <div>
-              <label className="block text-sm font-bold uppercase mb-1">Select Role</label>
-              <select 
-                value={selectedRole} onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-                className="w-full border-2 border-black p-3 font-bold bg-white focus:outline-none focus:bg-gray-100"
-              >
-                <option value="STUDENT">Student (Needs Approval)</option>
-                <option value="RECRUITER">Recruiter (Needs Approval)</option>
-                <option value="TPO">TPO Admin (Instant Access)</option>
-              </select>
-            </div>
-          )}
-
-          <button type="submit" className="w-full bg-black text-white border-2 border-black font-bold py-3 uppercase tracking-wide hover:bg-gray-800 transition-colors mt-4">
-            {isSignUp ? 'Sign Up' : 'Login'}
+          <button type="submit" className="w-full bg-black text-white border-2 border-black font-bold py-3 uppercase tracking-wide hover:bg-gray-800 transition-colors mt-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] active:shadow-none active:translate-y-1">
+            {isSignUp ? 'Register' : 'Sign In'}
           </button>
         </form>
 
@@ -103,7 +104,7 @@ export default function Auth() {
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-sm font-bold uppercase underline hover:text-gray-600"
           >
-            {isSignUp ? 'Back to Login' : 'Need access? Sign up here'}
+            {isSignUp ? 'Back to Login' : 'New here? Request Access'}
           </button>
         </div>
       </div>
