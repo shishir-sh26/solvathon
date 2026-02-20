@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+python-multipart
+python-dotenv
+google-generativeai
+langchain
+langchain-google-genai
+supabase
+PyMuPDF
+pdfplumber
+httpx
