@@ -1,17 +1,17 @@
 import { useState } from 'react';
-// Ensure this path points correctly to your Zustand store
-import { useAppStore } from '../../../store/useAppStore'; 
 import { MessageSquare, X, Send } from 'lucide-react';
 
-export default function ChatWindow() {
-  // Pulling the global state and toggle function from Zustand
-  const { isJarvisActive, toggleJarvis } = useAppStore();
+export default function ChatWindow({ context }: { context?: string }) {
+  // 1. FIXED: Replaced Zustand with a simple local state toggle!
+  const [isJarvisActive, setIsJarvisActive] = useState(false);
   
   // Local state for the chat inputs and messages
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([
-    { role: 'bot', text: 'SYSTEM: Jarvis initialized. I have full access to placement records. How can I assist?' }
+    { role: 'bot', text: `SYSTEM: Jarvis initialized for ${context || 'user'}. I have full access to placement records. How can I assist?` }
   ]);
+
+  const toggleJarvis = () => setIsJarvisActive(!isJarvisActive);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -22,7 +22,7 @@ export default function ChatWindow() {
     // 2. Clear the input field
     setInput('');
 
-    // 3. Simulate a bot response (You will connect this to FastAPI later)
+    // 3. Simulate a bot response (You will connect this to FastAPI SQL Agent later)
     setTimeout(() => {
       setMessages(prev => [...prev, { 
         role: 'bot', 
@@ -33,10 +33,7 @@ export default function ChatWindow() {
 
   return (
     <>
-      {/* 1. THE TRIGGER BUTTON
-        This button is ALWAYS visible on the screen. 
-        Clicking it runs `toggleBot`, which changes `isBotOpen` to true/false.
-      */}
+      {/* 1. THE TRIGGER BUTTON */}
       <button 
         onClick={toggleJarvis}
         className="fixed bottom-6 right-6 p-4 bg-black text-white border-2 border-black hover:bg-gray-800 transition-colors z-[9999] flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
@@ -44,9 +41,7 @@ export default function ChatWindow() {
         {isJarvisActive ? <X size={24} /> : <MessageSquare size={24} />}
       </button>
 
-      {/* 2. THE CHAT WINDOW 
-        This part only renders when `isJarvisActive` is true.
-      */}
+      {/* 2. THE CHAT WINDOW */}
       {isJarvisActive && (
         <div className="fixed bottom-24 right-6 w-[90vw] sm:w-96 bg-white border-4 border-black z-[9990] flex flex-col shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] font-sans h-[500px] max-h-[80vh]">
           

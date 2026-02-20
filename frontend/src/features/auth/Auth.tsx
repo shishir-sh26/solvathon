@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppStore } from '../../store/useAppStore';
-import type { UserRole } from '../../store/useAppStore';
+import { useWebSocketAuth } from '../../hooks/useWebSocketAuth';
+import type { UserRole } from '../../hooks/useWebSocketAuth';
 
 export default function Auth() {
-  const { setUserRole, approvedUsers, pendingUsers, requestAccess, directRegister } = useAppStore();
+  const { approvedUsers, pendingUsers, requestAccess, directRegister } = useWebSocketAuth();
   const navigate = useNavigate();
   
   const [isSignUp, setIsSignUp] = useState(false);
@@ -14,6 +14,9 @@ export default function Auth() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log("--- SUBMIT TRIGGERED ---");
+
     if (!email) return alert("Please enter an email address.");
 
     if (isSignUp) {
@@ -22,30 +25,44 @@ export default function Auth() {
 
       if (selectedRole === 'TPO') {
         directRegister(email, 'TPO');
-        setUserRole('TPO');
-        alert("TPO Account created! Redirecting to Dashboard...");
+        
+        // 1. Save to localStorage
+        localStorage.setItem('currentUserRole', 'TPO');
+        
+        // 2. DISPATCH CUSTOM EVENT (Forces App.tsx to wake up)
+        window.dispatchEvent(new Event('login-success'));
+        
+        alert("TPO Account created! Redirecting...");
         navigate('/tpo');
       } else {
         requestAccess(email, selectedRole);
-        alert(`Request sent! Please wait for TPO to approve your ${selectedRole} account.`);
+        alert(`Request sent! Please wait for TPO approval.`);
         setIsSignUp(false);
       }
     } else {
-      // LOGIN LOGIC WITH ROLE CHECK
+      // LOGIN LOGIC
       const user = approvedUsers.find(u => u.email === email);
       
       if (user) {
-        // Check if the role they selected matches their registered role
         if (user.role !== selectedRole) {
-          return alert(`This email is registered as a ${user.role}, not a ${selectedRole}.`);
+          return alert(`Oops! Registered as ${user.role}, not ${selectedRole}.`);
         }
         
-        setUserRole(user.role);
+        console.log("Success! Updating storage and firing event...");
+        
+        // 1. Save to localStorage
+        localStorage.setItem('currentUserRole', user.role);
+        
+        // 2. DISPATCH CUSTOM EVENT (This fixes the redirect lag)
+        window.dispatchEvent(new Event('login-success'));
+        
+        // 3. Navigate
         navigate(`/${user.role.toLowerCase()}`);
+        
       } else if (pendingUsers.some(u => u.email === email)) {
         alert("Your account is still pending TPO approval.");
       } else {
-        alert("Account not found. Please sign up first.");
+        alert("Account not found. Please sign up.");
       }
     }
   };
@@ -53,7 +70,6 @@ export default function Auth() {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans">
       <div className="bg-white border-4 border-black p-8 w-full max-w-md shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-        
         <div className="text-center mb-8 border-b-4 border-black pb-6">
           <h1 className="text-3xl font-black uppercase tracking-widest mb-2">PlacementPro</h1>
           <p className="text-gray-600 font-bold text-sm">
@@ -62,7 +78,6 @@ export default function Auth() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 mb-8">
-          {/* ROLE SELECTOR - Now visible for both Login and Sign Up */}
           <div>
             <label className="block text-sm font-bold uppercase mb-1">I am a...</label>
             <select 
