@@ -2,14 +2,14 @@ import { create } from 'zustand';
 
 interface AppState {
   userRole: 'TPO' | 'STUDENT' | 'RECRUITER' | null;
-  setUserRole: (role: 'TPO' | 'STUDENT' | 'RECRUITER') => void;
-  isJarvisActive: boolean;
-  toggleJarvis: () => void;
+  setUserRole: (role: 'TPO' | 'STUDENT' | 'RECRUITER' | null) => void;
+  isBotOpen: boolean;
+  toggleBot: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  userRole: 'TPO', // Defaulting to TPO for testing the Criteria Engine
+  userRole: null, // Starts as null so the user is forced to the login screen
   setUserRole: (role) => set({ userRole: role }),
-  isJarvisActive: false,
-  toggleJarvis: () => set((state) => ({ isJarvisActive: !state.isJarvisActive })),
+  isBotOpen: false,
+  toggleBot: () => set((state) => ({ isBotOpen: !state.isBotOpen })),
 }));
