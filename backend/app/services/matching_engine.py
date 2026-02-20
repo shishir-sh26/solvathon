@@ -1,24 +1,31 @@
-from typing import List
-import numpy as np
-from app.services.llm_service import llm_service
+import re
 
-async def calculate_match(student_skills: List[str], job_description: str):
-    """
-    Calculates the match percentage between student skills and a job description using Gemini.
-    """
-    skills_str = ", ".join(student_skills)
-    prompt = f"""
-    Job Description: {job_description}
-    Student Skills: {skills_str}
-    
-    Calculate a match percentage (0-100) and provide a 1-sentence justification.
-    Return only JSON: {{"percentage": 85, "justification": "..."}}
-    """
-    
-    response_text = await llm_service.get_structured_json(prompt)
-    try:
-        cleaned_json = response_text.replace("```json", "").replace("```", "").strip()
-        import json
-        return json.loads(cleaned_json)
-    except:
-        return {"percentage": 0, "justification": "Error in matching logic"}
+# DUMMY DATASET
+DUMMY_STUDENTS = [
+    { "id": 101, "name": "Arjun Mehta", "branch": "CS", "matchScore": 0, "status": "Applied", "docsVerified": True, "skills": ["React", "Node", "TypeScript", "Tailwind"] },
+    { "id": 102, "name": "Sneha Rao", "branch": "IS", "matchScore": 0, "status": "Applied", "docsVerified": False, "skills": ["Python", "Django", "SQL", "Machine Learning"] },
+    { "id": 103, "name": "Vikram Singh", "branch": "EC", "matchScore": 0, "status": "Applied", "docsVerified": True, "skills": ["C++", "Embedded Systems", "IoT", "Arduino"] },
+    { "id": 104, "name": "Ananya Iyer", "branch": "CS", "matchScore": 0, "status": "Applied", "docsVerified": True, "skills": ["Java", "Spring Boot", "AWS", "Docker"] },
+    { "id": 105, "name": "Zaid Khan", "branch": "CSD", "matchScore": 0, "status": "Applied", "docsVerified": False, "skills": ["UI/UX", "Figma", "React", "Frontend"] },
+]
+
+def run_matching_logic(job_description: str):
+    # Extract words from the description
+    desc_words = set(re.findall(r'\w+', job_description.lower()))
+    matched_results = []
+
+    for student in DUMMY_STUDENTS:
+        student_skills = [s.lower() for s in student["skills"]]
+        # Count overlaps
+        matches = [skill for skill in student_skills if skill in desc_words]
+        
+        # Calculate Score
+        score = int((len(matches) / len(student_skills)) * 100) if student_skills else 0
+        
+        updated_student = student.copy()
+        updated_student["matchScore"] = score
+        matched_results.append(updated_student)
+
+    # Sort: Highest match first
+    matched_results.sort(key=lambda x: x["matchScore"], reverse=True)
+    return matched_results
