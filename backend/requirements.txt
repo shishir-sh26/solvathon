@@ -15,3 +15,7 @@ PyMuPDF
 pdfplumber
 httpx
 vecs
+python-jose[cryptography]
+passlib[bcrypt]
+email-validator
+fpdf2

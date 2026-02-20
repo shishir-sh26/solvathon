@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  Bell, Search, User, Briefcase, Video, FileText, 
-  Youtube, TrendingUp, CheckCircle, Users, Calendar as CalendarIcon, UploadCloud, 
-ChevronRight, LogOut, Settings, X, Target, ArrowRight, AlertCircle, Phone, Award, GraduationCap} from 'lucide-react';
+import {
+  Bell, Search, User, Briefcase, Video, FileText,
+  Youtube, TrendingUp, CheckCircle, Users, Calendar as CalendarIcon, UploadCloud,
+  ChevronRight, LogOut, Settings, X, Target, ArrowRight, AlertCircle, Phone, Award, GraduationCap
+} from 'lucide-react';
 
 // Import your Chatbot component
 import StudentChatBot from './components/StudentChatBot';
@@ -10,12 +11,12 @@ import StudentChatBot from './components/StudentChatBot';
 export default function StudentPortal() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  
+
   // NEW STATE: Controls the massive profile edit modal
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
 
   // Mock initial data
-  const scheduledDates = [12, 18, 24]; 
+  const scheduledDates = [12, 18, 24];
   const studentData = {
     name: "ALEX JOHNSON",
     usn: "1RV21CS001",
@@ -43,17 +44,93 @@ export default function StudentPortal() {
     certifications: '',
   });
 
+  // Mock ID for current development session
+  const mockId = "00000000-0000-0000-0000-000000000000";
+
+  React.useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/student/profile/${mockId}`);
+        const result = await response.json();
+        if (result.data) {
+          const profile = result.data;
+          setFormData({
+            fullName: studentData.name, // Usually comes from user table
+            usn: profile.roll_number || '',
+            dob: profile.dob || '',
+            gender: profile.gender || '',
+            email: 'alex@college.edu',
+            phone: profile.phone || '',
+            sslcPercentage: profile.sslc_percentage?.toString() || '',
+            pucDiplomaPercentage: profile.puc_percentage?.toString() || '',
+            branch: profile.branch || '',
+            gradYear: profile.graduation_year?.toString() || '',
+            cgpa: profile.cgpa?.toString() || '',
+            backlogs: profile.backlogs?.toString() || '0',
+            skills: Array.isArray(profile.skills) ? profile.skills.join(', ') : (profile.skills || ''),
+            certifications: profile.certifications || '',
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+    fetchProfile();
+  }, []);
+
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleProfileSubmit = (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (parseFloat(formData.cgpa) > 10 || parseFloat(formData.cgpa) < 0) {
+
+    // Simple validation
+    const cgpaNum = parseFloat(formData.cgpa);
+    if (cgpaNum > 10 || cgpaNum < 0) {
       return alert("CGPA must be between 0 and 10.");
     }
-    alert("PROFILE VERIFIED & SAVED!");
-    setIsEditProfileModalOpen(false); // Close modal on success
+
+    try {
+      // Map frontend fields to backend schema
+      const payload = {
+        roll_number: formData.usn,
+        dob: formData.dob,
+        gender: formData.gender,
+        phone: formData.phone,
+        sslc_percentage: parseFloat(formData.sslcPercentage) || 0,
+        puc_percentage: parseFloat(formData.pucDiplomaPercentage) || 0,
+        branch: formData.branch,
+        graduation_year: parseInt(formData.gradYear) || 2025,
+        cgpa: cgpaNum,
+        backlogs: parseInt(formData.backlogs) || 0,
+        skills: formData.skills, // Backend will handle if string
+        certifications: formData.certifications
+      };
+
+      // In a real app, 'id' comes from Auth. Using mock ID for now.
+      const mockId = "00000000-0000-0000-0000-000000000000";
+
+      const response = await fetch(`http://localhost:8000/api/student/profile/${mockId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update profile");
+      }
+
+      const result = await response.json();
+      console.log("Profile Saved:", result);
+      alert("PROFILE VERIFIED & SAVED TO SUPABASE!");
+      setIsEditProfileModalOpen(false);
+    } catch (error) {
+      console.error(error);
+      alert("Error saving profile. Please check if backend is running.");
+    }
   };
 
   const navItems = [
@@ -68,9 +145,35 @@ export default function StudentPortal() {
     { id: 'upload', label: 'VERIFY CREDENTIALS', icon: UploadCloud },
   ];
 
+  const [isGeneratingResume, setIsGeneratingResume] = React.useState(false);
+
+  const handleDownloadResume = async () => {
+    setIsGeneratingResume(true);
+    try {
+      const response = await fetch(`http://localhost:8000/api/resume/generate/${mockId}`);
+      if (!response.ok) throw new Error("Failed to generate resume");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ATS_Resume_${studentData.name.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      alert("RESUME GENERATED & DOWNLOADED!");
+    } catch (error) {
+      console.error(error);
+      alert("Error generating resume. Please ensure profile is saved first.");
+    } finally {
+      setIsGeneratingResume(false);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-white text-black font-sans selection:bg-black selection:text-white relative">
-      
+
       {/* ================= SIDEBAR ================= */}
       <aside className="w-72 bg-white border-r-4 border-black flex flex-col z-20">
         <div className="h-20 flex items-center px-6 border-b-4 border-black bg-yellow-300">
@@ -81,14 +184,22 @@ export default function StudentPortal() {
             {navItems.map((item) => (
               <li key={item.id}>
                 <button
-                  onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center justify-between px-6 py-4 text-left border-b-2 border-black transition-all ${
-                    activeTab === item.id ? 'bg-black text-white font-black pl-8' : 'hover:bg-gray-200 font-bold text-gray-800'
-                  }`}
+                  onClick={() => {
+                    if (item.id === 'resume') {
+                      handleDownloadResume();
+                    } else {
+                      setActiveTab(item.id);
+                    }
+                  }}
+                  disabled={item.id === 'resume' && isGeneratingResume}
+                  className={`w-full flex items-center justify-between px-6 py-4 text-left border-b-2 border-black transition-all ${activeTab === item.id ? 'bg-black text-white font-black pl-8' : 'hover:bg-gray-200 font-bold text-gray-800'
+                    } ${isGeneratingResume && item.id === 'resume' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <div className="flex items-center">
                     <item.icon className={`w-5 h-5 mr-3 ${activeTab === item.id ? 'text-yellow-400' : 'text-black'}`} />
-                    <span className="tracking-wider text-sm">{item.label}</span>
+                    <span className="tracking-wider text-sm">
+                      {item.id === 'resume' && isGeneratingResume ? 'GENERATING...' : item.label}
+                    </span>
                   </div>
                   {activeTab === item.id && <ChevronRight className="w-5 h-5" />}
                 </button>
@@ -99,7 +210,7 @@ export default function StudentPortal() {
       </aside>
 
       {/* ================= MAIN CONTENT AREA ================= */}
-      <main 
+      <main
         className="flex-1 flex flex-col overflow-hidden bg-gray-50 relative"
         onClick={() => isProfileDropdownOpen && setIsProfileDropdownOpen(false)}
       >
@@ -117,7 +228,7 @@ export default function StudentPortal() {
             </button>
 
             {/* Profile Button Trigger */}
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); setIsProfileDropdownOpen(!isProfileDropdownOpen); }}
               className={`flex items-center space-x-3 p-2 border-2 border-black transition-colors ${isProfileDropdownOpen ? 'bg-black text-white' : 'hover:bg-gray-200 text-black'}`}
             >
@@ -134,11 +245,11 @@ export default function StudentPortal() {
                   <h3 className="text-xl font-black uppercase tracking-wider">{studentData.name}</h3>
                   <p className="font-bold text-sm font-mono mt-1">{studentData.usn}</p>
                 </div>
-                
+
                 {/* Profile Actions */}
                 <div className="flex flex-col">
                   {/* TRIGGER FOR THE MASSIVE FORM MODAL */}
-                  <button 
+                  <button
                     onClick={() => { setIsEditProfileModalOpen(true); setIsProfileDropdownOpen(false); }}
                     className="flex items-center p-4 hover:bg-black hover:text-white font-black uppercase text-sm border-b-2 border-black transition-colors"
                   >
@@ -164,16 +275,16 @@ export default function StudentPortal() {
                   <p className="text-gray-600 mt-2 font-bold uppercase">Overview of your placement journey.</p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* CALENDAR */}
                 <div className="lg:col-span-2 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6">
                   <h3 className="font-black text-xl uppercase tracking-wide flex items-center mb-6 border-b-2 border-black pb-2">
-                    <CalendarIcon className="mr-2 w-6 h-6"/> Interview Schedule
+                    <CalendarIcon className="mr-2 w-6 h-6" /> Interview Schedule
                   </h3>
                   <div className="grid grid-cols-7 gap-2 text-center">
-                    {['SUN','MON','TUE','WED','THU','FRI','SAT'].map(day => <div key={day} className="font-black text-xs uppercase bg-gray-200 py-2 border-2 border-black">{day}</div>)}
-                    {Array.from({length: 30}, (_, i) => i + 1).map(day => {
+                    {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => <div key={day} className="font-black text-xs uppercase bg-gray-200 py-2 border-2 border-black">{day}</div>)}
+                    {Array.from({ length: 30 }, (_, i) => i + 1).map(day => {
                       const isInterview = scheduledDates.includes(day);
                       return (
                         <div key={day} className={`p-2 border-2 border-black font-bold h-16 flex flex-col items-center justify-center transition-all ${isInterview ? 'bg-yellow-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -translate-y-1' : 'bg-white hover:bg-gray-100'}`}>
@@ -205,11 +316,11 @@ export default function StudentPortal() {
       {/* ================= MASSIVE PROFILE EDIT MODAL ================= */}
       {isEditProfileModalOpen && (
         <div className="fixed inset-0 z-9999 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 overflow-y-auto">
-          
+
           <div className="bg-white border-4 border-black shadow-[16px_16px_0px_0px_rgba(253,224,71,1)] w-full max-w-4xl p-8 md:p-12 relative my-auto">
-            
+
             {/* Close Button */}
-            <button 
+            <button
               onClick={() => setIsEditProfileModalOpen(false)}
               className="absolute top-4 right-4 bg-black text-white p-2 border-2 border-black hover:bg-red-500 transition-colors"
             >
@@ -226,7 +337,7 @@ export default function StudentPortal() {
 
             {/* The Form */}
             <form onSubmit={handleProfileSubmit} className="space-y-8">
-              
+
               {/* SECTION 1: Personal & Contact */}
               <div className="space-y-4">
                 <h3 className="font-black text-lg uppercase flex items-center bg-gray-200 p-2 border-2 border-black">
@@ -254,7 +365,7 @@ export default function StudentPortal() {
                     </select>
                   </div>
                   <div className="flex flex-col">
-                    <label className="font-black text-xs uppercase mb-1 flex items-center"><Phone className="w-3 h-3 mr-1"/> Phone *</label>
+                    <label className="font-black text-xs uppercase mb-1 flex items-center"><Phone className="w-3 h-3 mr-1" /> Phone *</label>
                     <input type="tel" name="phone" pattern="[0-9]{10}" required value={formData.phone} onChange={handleFormChange} className="border-2 border-black p-2 font-bold uppercase bg-gray-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-yellow-300" />
                   </div>
                   <div className="flex flex-col">
@@ -312,7 +423,7 @@ export default function StudentPortal() {
                   <textarea name="skills" required rows={2} value={formData.skills} onChange={handleFormChange} className="border-2 border-black p-2 font-bold uppercase bg-gray-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-yellow-300 resize-none" />
                 </div>
                 <div className="flex flex-col">
-                  <label className="font-black text-xs uppercase mb-1 flex justify-between"><span className="flex items-center"><Award className="w-3 h-3 mr-1"/> Certifications</span><span className="text-gray-500">OPTIONAL</span></label>
+                  <label className="font-black text-xs uppercase mb-1 flex justify-between"><span className="flex items-center"><Award className="w-3 h-3 mr-1" /> Certifications</span><span className="text-gray-500">OPTIONAL</span></label>
                   <textarea name="certifications" rows={2} value={formData.certifications} onChange={handleFormChange} className="border-2 border-black p-2 font-bold uppercase bg-gray-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-yellow-300 resize-none" />
                 </div>
               </div>
@@ -320,7 +431,7 @@ export default function StudentPortal() {
               {/* SUBMIT BUTTON */}
               <div className="pt-4">
                 <button type="submit" className="w-full bg-blue-600 text-white border-4 border-black p-4 font-black text-xl uppercase tracking-widest hover:bg-black hover:text-yellow-300 transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none flex justify-center items-center group">
-                  Lock & Update Profile 
+                  Lock & Update Profile
                   <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-2 transition-transform" />
                 </button>
               </div>
@@ -332,7 +443,7 @@ export default function StudentPortal() {
 
       {/* Injecting the Student Chatbot Component here */}
       <StudentChatBot />
-      
+
     </div>
   );
 }
