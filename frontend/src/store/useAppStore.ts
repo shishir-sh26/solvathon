@@ -10,8 +10,8 @@ interface UserData {
 interface AppState {
   userRole: UserRole | null;
   setUserRole: (role: UserRole | null) => void;
-  isBotOpen: boolean;
-  toggleBot: () => void;
+  isJarvisActive: boolean;
+  toggleJarvis: () => void;
   
   // Approval Workflow State
   approvedUsers: UserData[];
@@ -25,8 +25,8 @@ interface AppState {
 export const useAppStore = create<AppState>((set) => ({
   userRole: null, 
   setUserRole: (role) => set({ userRole: role }),
-  isBotOpen: false,
-  toggleBot: () => set((state) => ({ isBotOpen: !state.isBotOpen })),
+  isJarvisActive: false,
+  toggleJarvis: () => set((state) => ({ isJarvisActive: !state.isJarvisActive })),
 
   approvedUsers: [{ email: 'admin@college.edu', role: 'TPO' }],
   pendingUsers: [],
