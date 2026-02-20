@@ -1,14 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWebSocketAuth } from '../../hooks/useWebSocketAuth';
-import { Check, X, Bell, LogOut, Search, Users, Briefcase, Calendar as CalendarIcon } from 'lucide-react'; 
-
-// --- Extended Mock Data ---
-const mockStudents = [
-  { id: 1, name: 'Alex Johnson', usn: '1RV21CS001', branch: 'CS', cgpa: 8.5, email: 'alex@college.edu', phone: '9876543210', skills: ['React', 'Node'] },
-  { id: 2, name: 'Priya Sharma', usn: '1RV21IS045', branch: 'IS', cgpa: 7.2, email: 'priya@college.edu', phone: '9123456780', skills: ['Python', 'SQL'] },
-  { id: 3, name: 'Rahul Verma', usn: '1RV21EC089', branch: 'EC', cgpa: 6.8, email: 'rahul@college.edu', phone: '9988776655', skills: ['C++', 'IoT'] },
-  { id: 4, name: 'Neha Gupta', usn: '1RV21CS112', branch: 'CS', cgpa: 9.1, email: 'neha@college.edu', phone: '9112233445', skills: ['Java', 'Spring Boot'] },
-];
+import { Check, X, Bell, LogOut, Search, Users, Briefcase, Calendar as CalendarIcon, Loader2 } from 'lucide-react'; 
 
 export default function TPODashboard() {
   // --- REAL WEBSOCKET AUTH HOOK ---
@@ -21,25 +13,64 @@ export default function TPODashboard() {
   
   // --- General Search State ---
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // --- NEW: Backend Data State ---
+  const [students, setStudents] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Mock Scheduled Interview Dates for the Calendar
   const scheduledDates = [12, 18, 24];
 
-  // 1. Calculate Eligibility Dynamically & Apply Search Filter
-  const processedStudents = mockStudents.map(student => {
+  // --- NEW: Fetch Students from Backend Engine ---
+  useEffect(() => {
+    const fetchStudents = async () => {
+      setIsSearching(true);
+      try {
+        // Construct URL: If searchTerm exists, pass it to the backend
+        const url = searchTerm 
+          ? `http://localhost:8000/api/recruiter/tpo/students?search=${encodeURIComponent(searchTerm)}`
+          : `http://localhost:8000/api/recruiter/tpo/students`;
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch students");
+        
+        const data = await response.json();
+        // Map backend dummy dataset keys to frontend keys if needed
+        const formattedStudents = data.students.map((s: any) => ({
+          id: s.id,
+          name: s.name,
+          usn: `1RV21${s.branch}0${s.id}`, // Faking a USN since dummy data doesn't have it
+          branch: s.branch,
+          cgpa: (Math.random() * (9.5 - 6.5) + 6.5).toFixed(1), // Faking CGPA for dummy data
+          email: `${s.name.split(' ')[0].toLowerCase()}@college.edu`,
+          phone: '9876543210',
+          skills: s.skills,
+          matchScore: s.matchScore // From matching engine
+        }));
+        
+        setStudents(formattedStudents);
+      } catch (error) {
+        console.error("Error fetching from matching engine:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    // Debounce the search so it doesn't hit the API on every single keystroke
+    const delayDebounceFn = setTimeout(() => {
+      fetchStudents();
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]); // Re-run whenever searchTerm changes
+
+  // 1. Calculate Eligibility Dynamically (Local Filters applied AFTER backend search)
+  const processedStudents = students.map(student => {
     // Check strict eligibility criteria
-    const meetsCgpa = minCgpa ? student.cgpa >= parseFloat(minCgpa) : true;
+    const meetsCgpa = minCgpa ? parseFloat(student.cgpa) >= parseFloat(minCgpa) : true;
     const meetsBranch = branchFilter ? student.branch.toLowerCase().includes(branchFilter.toLowerCase()) : true;
     const isEligible = meetsCgpa && meetsBranch;
     return { ...student, isEligible };
-  }).filter(student => {
-    // Apply general search filter (ONLY Skills or CGPA)
-    if (!searchTerm) return true;
-    const lowerSearch = searchTerm.toLowerCase();
-    return (
-      student.cgpa.toString().includes(lowerSearch) ||
-      student.skills.some(skill => skill.toLowerCase().includes(lowerSearch))
-    );
   });
 
   const eligibleCount = processedStudents.filter(s => s.isEligible).length;
@@ -107,7 +138,7 @@ export default function TPODashboard() {
           <div className="bg-blue-400 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between flex-1">
               <div>
                 <h3 className="font-black uppercase text-sm">Total Students</h3>
-                <p className="text-4xl font-black">124</p>
+                <p className="text-4xl font-black">{students.length}</p>
               </div>
               <Users size={40} strokeWidth={3} />
           </div>
@@ -203,18 +234,19 @@ export default function TPODashboard() {
       {/* --- SECTION 4: STUDENT DATABASE & SEARCH --- */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-4 gap-4">
         
-        {/* NEW: Universal Search Bar (Strictly Skills & CGPA) */}
+        {/* NEW: AI Search Bar */}
         <div className="flex-1 w-full max-w-md">
           <h3 className="font-black text-xl uppercase mb-2">Student Database</h3>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input 
               type="text" 
-              placeholder="SEARCH BY SKILLS OR CGPA..." 
+              placeholder="SEARCH BY SKILLS (Powered by AI Engine)..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border-4 border-black font-bold uppercase tracking-wide outline-none focus:bg-yellow-50 transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              className="w-full pl-10 pr-10 py-3 border-4 border-black font-bold uppercase tracking-wide outline-none focus:bg-yellow-50 transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
             />
+            {isSearching && <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-black w-5 h-5 animate-spin" />}
           </div>
         </div>
 
@@ -236,6 +268,7 @@ export default function TPODashboard() {
               <th className="p-3 border-r-2 border-gray-600 font-bold uppercase tracking-wider text-sm">Branch / CGPA</th>
               <th className="p-3 border-r-2 border-gray-600 font-bold uppercase tracking-wider text-sm">Contact</th>
               <th className="p-3 border-r-2 border-gray-600 font-bold uppercase tracking-wider text-sm">Top Skills</th>
+              {searchTerm && <th className="p-3 border-r-2 border-gray-600 font-bold uppercase tracking-wider text-sm text-center text-yellow-300">Match %</th>}
               <th className="p-3 font-bold uppercase tracking-wider text-sm text-center">Eligibility</th>
             </tr>
           </thead>
@@ -255,6 +288,11 @@ export default function TPODashboard() {
                   <td className="p-3 border-r-2 border-black text-sm font-bold text-gray-700">
                     {student.skills.join(', ')}
                   </td>
+                  {searchTerm && (
+                    <td className="p-3 border-r-2 border-black text-center font-black text-lg">
+                      {student.matchScore}%
+                    </td>
+                  )}
                   <td className="p-3 text-center">
                     {student.isEligible ? (
                       <span className="bg-black text-white px-3 py-1 text-xs uppercase font-black tracking-widest border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
@@ -270,7 +308,7 @@ export default function TPODashboard() {
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="p-6 text-center font-bold text-gray-500 uppercase tracking-widest">
+                <td colSpan={searchTerm ? 7 : 6} className="p-6 text-center font-bold text-gray-500 uppercase tracking-widest">
                   No students found matching your criteria.
                 </td>
               </tr>

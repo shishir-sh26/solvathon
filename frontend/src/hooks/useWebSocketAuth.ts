@@ -36,14 +36,16 @@ export function useWebSocketAuth() {
     
     ws.onclose = () => {
       console.log('⚪ WebSocket Closed');
-      socketRef.current = null;
+      // FIX: Only clear the ref if THIS specific socket is the current one!
+      // This stops React Strict Mode from deleting the newly created WebSocket.
+      if (socketRef.current === ws) {
+        socketRef.current = null;
+      }
     };
 
     // Cleanup on unmount
     return () => {
-      if (ws.readyState === 1) { // OPEN
-        ws.close();
-      }
+      ws.close();
     };
   }, []);
 
