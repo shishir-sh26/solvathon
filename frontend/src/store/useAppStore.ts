@@ -1,15 +1,50 @@
 import { create } from 'zustand';
 
+export type UserRole = 'TPO' | 'STUDENT' | 'RECRUITER';
+
+interface UserData {
+  email: string;
+  role: UserRole;
+}
+
 interface AppState {
-  userRole: 'TPO' | 'STUDENT' | 'RECRUITER' | null;
-  setUserRole: (role: 'TPO' | 'STUDENT' | 'RECRUITER' | null) => void;
+  userRole: UserRole | null;
+  setUserRole: (role: UserRole | null) => void;
   isBotOpen: boolean;
   toggleBot: () => void;
+  
+  // Approval Workflow State
+  approvedUsers: UserData[];
+  pendingUsers: UserData[];
+  requestAccess: (email: string, role: UserRole) => void;
+  approveUser: (email: string) => void;
+  rejectUser: (email: string) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  userRole: null, // Starts as null so the user is forced to the login screen
+  userRole: null, 
   setUserRole: (role) => set({ userRole: role }),
   isBotOpen: false,
   toggleBot: () => set((state) => ({ isBotOpen: !state.isBotOpen })),
+
+  // Pre-approved Admin account so you don't get locked out!
+  approvedUsers: [{ email: 'admin@college.edu', role: 'TPO' }],
+  pendingUsers: [],
+
+  requestAccess: (email, role) => set((state) => ({
+    pendingUsers: [...state.pendingUsers, { email, role }]
+  })),
+
+  approveUser: (email) => set((state) => {
+    const userToApprove = state.pendingUsers.find(u => u.email === email);
+    if (!userToApprove) return state;
+    return {
+      pendingUsers: state.pendingUsers.filter(u => u.email !== email),
+      approvedUsers: [...state.approvedUsers, userToApprove]
+    };
+  }),
+
+  rejectUser: (email) => set((state) => ({
+    pendingUsers: state.pendingUsers.filter(u => u.email !== email)
+  }))
 }));

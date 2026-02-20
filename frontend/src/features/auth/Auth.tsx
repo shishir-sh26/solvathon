@@ -1,26 +1,42 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
-
+import type { UserRole } from '../../store/useAppStore'; // <-- Add "type" here!
 export default function Auth() {
-  const { setUserRole } = useAppStore();
+  const { setUserRole, approvedUsers, pendingUsers, requestAccess } = useAppStore();
   const navigate = useNavigate();
+  
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState<UserRole>('STUDENT');
 
-  const handleLogin = (role: 'TPO' | 'STUDENT' | 'RECRUITER') => {
-    if (!email || !password) {
-      alert("Please enter a mock email and password to continue.");
-      return;
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return alert("Please enter an email address.");
+
+    if (isSignUp) {
+      // Check if already exists
+      if (approvedUsers.some(u => u.email === email) || pendingUsers.some(u => u.email === email)) {
+        return alert("This email is already registered or pending approval.");
+      }
+      requestAccess(email, selectedRole);
+      alert("Registration submitted! Please wait for TPO approval.");
+      setIsSignUp(false);
+      setEmail('');
+      setPassword('');
+    } else {
+      // Login Logic
+      const user = approvedUsers.find(u => u.email === email);
+      if (user) {
+        setUserRole(user.role);
+        navigate(`/${user.role.toLowerCase()}`);
+      } else if (pendingUsers.some(u => u.email === email)) {
+        alert("Your account is still pending TPO approval.");
+      } else {
+        alert("Account not found. Please sign up first.");
+      }
     }
-    
-    // 1. Set the global Zustand state
-    setUserRole(role);
-    
-    // 2. Redirect to the correct URL based on their role
-    if (role === 'STUDENT') navigate('/student');
-    if (role === 'TPO') navigate('/tpo');
-    if (role === 'RECRUITER') navigate('/recruiter');
   };
 
   return (
@@ -29,16 +45,18 @@ export default function Auth() {
         
         <div className="text-center mb-8 border-b-4 border-black pb-6">
           <h1 className="text-3xl font-black uppercase tracking-widest mb-2">PlacementPro</h1>
-          <p className="text-gray-600 font-bold text-sm">Centralized Campus Career Suite</p>
+          <p className="text-gray-600 font-bold text-sm">
+            {isSignUp ? 'Request Platform Access' : 'Secure Login Portal'}
+          </p>
         </div>
 
-        <div className="space-y-4 mb-8">
+        <form onSubmit={handleSubmit} className="space-y-4 mb-8">
           <div>
-            <label className="block text-sm font-bold uppercase mb-1">Email / ID</label>
+            <label className="block text-sm font-bold uppercase mb-1">Email</label>
             <input 
-              type="text" value={email} onChange={(e) => setEmail(e.target.value)}
+              type="email" value={email} onChange={(e) => setEmail(e.target.value)}
               className="w-full border-2 border-black p-3 font-bold focus:outline-none focus:bg-gray-100"
-              placeholder="admin@college.edu"
+              placeholder="name@college.edu" required
             />
           </div>
           <div>
@@ -46,22 +64,44 @@ export default function Auth() {
             <input 
               type="password" value={password} onChange={(e) => setPassword(e.target.value)}
               className="w-full border-2 border-black p-3 font-bold focus:outline-none focus:bg-gray-100"
-              placeholder="••••••••"
+              placeholder="••••••••" required
             />
           </div>
-        </div>
 
-        <div className="space-y-3">
-          <p className="text-xs font-bold text-center text-gray-500 uppercase mb-2">Simulate Login As:</p>
-          <button onClick={() => handleLogin('STUDENT')} className="w-full bg-white text-black border-2 border-black font-bold py-3 uppercase tracking-wide hover:bg-gray-100">
-            Login as Student
+          {isSignUp && (
+            <div>
+              <label className="block text-sm font-bold uppercase mb-1">Request Role</label>
+              <select 
+                value={selectedRole} onChange={(e) => setSelectedRole(e.target.value as UserRole)}
+                className="w-full border-2 border-black p-3 font-bold bg-white focus:outline-none focus:bg-gray-100"
+              >
+                <option value="STUDENT">Student</option>
+                <option value="RECRUITER">Recruiter</option>
+                <option value="TPO">TPO Admin</option>
+              </select>
+            </div>
+          )}
+
+          <button type="submit" className="w-full bg-black text-white border-2 border-black font-bold py-3 uppercase tracking-wide hover:bg-gray-800 transition-colors mt-4">
+            {isSignUp ? 'Submit Request' : 'Login'}
           </button>
-          <button onClick={() => handleLogin('TPO')} className="w-full bg-black text-white border-2 border-black font-bold py-3 uppercase tracking-wide hover:bg-gray-800">
-            Login as TPO Admin
+        </form>
+
+        <div className="text-center">
+          <button 
+            type="button" 
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="text-sm font-bold uppercase underline hover:text-gray-600"
+          >
+            {isSignUp ? 'Already approved? Login here' : 'Need access? Sign up here'}
           </button>
-          <button onClick={() => handleLogin('RECRUITER')} className="w-full bg-white text-black border-2 border-black font-bold py-3 uppercase tracking-wide hover:bg-gray-100">
-            Login as Recruiter
-          </button>
+          
+          {/* Helper text for your hackathon demo */}
+          {!isSignUp && (
+            <p className="text-xs text-gray-400 mt-6 font-mono">
+              Demo Admin: admin@college.edu
+            </p>
+          )}
         </div>
 
       </div>
