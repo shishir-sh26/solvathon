@@ -6,7 +6,7 @@ import type { UserRole } from '../../hooks/useWebSocketAuth';
 export default function Auth() {
   const { approvedUsers, pendingUsers, requestAccess, directRegister } = useWebSocketAuth();
   const navigate = useNavigate();
-  
+
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,7 +14,7 @@ export default function Auth() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     console.log("--- SUBMIT TRIGGERED ---");
 
     if (!email) return alert("Please enter an email address.");
@@ -25,13 +25,14 @@ export default function Auth() {
 
       if (selectedRole === 'TPO') {
         directRegister(email, 'TPO');
-        
+
         // 1. Save to localStorage
         localStorage.setItem('currentUserRole', 'TPO');
-        
+        localStorage.setItem('currentUserId', email);
+
         // 2. DISPATCH CUSTOM EVENT (Forces App.tsx to wake up)
         window.dispatchEvent(new Event('login-success'));
-        
+
         alert("TPO Account created! Redirecting...");
         navigate('/tpo');
       } else {
@@ -42,23 +43,24 @@ export default function Auth() {
     } else {
       // LOGIN LOGIC
       const user = approvedUsers.find(u => u.email === email);
-      
+
       if (user) {
         if (user.role !== selectedRole) {
           return alert(`Oops! Registered as ${user.role}, not ${selectedRole}.`);
         }
-        
+
         console.log("Success! Updating storage and firing event...");
-        
+
         // 1. Save to localStorage
         localStorage.setItem('currentUserRole', user.role);
-        
+        localStorage.setItem('currentUserId', user.email);
+
         // 2. DISPATCH CUSTOM EVENT (This fixes the redirect lag)
         window.dispatchEvent(new Event('login-success'));
-        
+
         // 3. Navigate
         navigate(`/${user.role.toLowerCase()}`);
-        
+
       } else if (pendingUsers.some(u => u.email === email)) {
         alert("Your account is still pending TPO approval.");
       } else {
@@ -80,7 +82,7 @@ export default function Auth() {
         <form onSubmit={handleSubmit} className="space-y-4 mb-8">
           <div>
             <label className="block text-sm font-bold uppercase mb-1">I am a...</label>
-            <select 
+            <select
               value={selectedRole} onChange={(e) => setSelectedRole(e.target.value as UserRole)}
               className="w-full border-2 border-black p-3 font-bold bg-white focus:outline-none focus:bg-yellow-50"
             >
@@ -92,7 +94,7 @@ export default function Auth() {
 
           <div>
             <label className="block text-sm font-bold uppercase mb-1">Email</label>
-            <input 
+            <input
               type="email" value={email} onChange={(e) => setEmail(e.target.value)}
               className="w-full border-2 border-black p-3 font-bold focus:outline-none focus:bg-gray-100"
               placeholder="name@college.edu" required
@@ -101,7 +103,7 @@ export default function Auth() {
 
           <div>
             <label className="block text-sm font-bold uppercase mb-1">Password</label>
-            <input 
+            <input
               type="password" value={password} onChange={(e) => setPassword(e.target.value)}
               className="w-full border-2 border-black p-3 font-bold focus:outline-none focus:bg-gray-100"
               placeholder="••••••••" required
@@ -114,8 +116,8 @@ export default function Auth() {
         </form>
 
         <div className="text-center">
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-sm font-bold uppercase underline hover:text-gray-600"
           >

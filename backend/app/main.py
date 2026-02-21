@@ -1,14 +1,39 @@
+<<<<<<< HEAD
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+=======
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+# IMPORT auth_ws HERE
+from app.api import auth, auth_ws, tpo, student, resume, analytics, bot, interview
+>>>>>>> ajay
 
 # --- IMPORT ALL ROUTERS HERE ---
 from app.api import recruiter 
 from app.api import student  # <-- NEW: Import student router
 from app.api import resume   # <-- NEW: Import resume router
 
+<<<<<<< HEAD
 app = FastAPI(title="PlacementPro API")
 
 # --- 1. CORS SETUP ---
+=======
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"GLOBAL ERROR: {str(exc)}")
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal Server Error", "detail": str(exc)},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
+
+print("DEBUG: Initializing CORS with unrestricted origins (*)")
+>>>>>>> ajay
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
