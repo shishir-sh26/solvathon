@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import ChatWindow from '../../features/placement-bot/components/ChatWindow'; // Ensure this path is correct!
