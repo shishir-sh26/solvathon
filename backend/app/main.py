@@ -105,11 +105,13 @@ async def websocket_auth_endpoint(websocket: WebSocket):
         print(f"❌ WEBSOCKET CRASHED: {e}")
 
 # --- 4. REGISTER ALL API ROUTERS ---
+# Registered to resolve 404 errors for interview and bot modules
 app.include_router(recruiter.router, prefix="/api/recruiter", tags=["Recruiter"])
 app.include_router(student.router, prefix="/api/student", tags=["Student"])
 app.include_router(resume.router, prefix="/api/resume", tags=["Resume"])
-# Add other routers from your import list as needed
-# app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
+app.include_router(interview.router, prefix="/api/interview", tags=["Interview"])
+app.include_router(bot.router, prefix="/api/bot", tags=["Chatbot"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 
 # --- 5. ROOT ENDPOINT ---
 @app.get("/")
