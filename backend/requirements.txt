@@ -10,3 +10,4 @@ websockets
 pymupdf
 python-jose[cryptography]
 passlib[bcrypt]
+google-generativeai
