@@ -8,3 +8,4 @@ python-dotenv
 fpdf2
 google-generativeai
 websockets
+pymupdf
