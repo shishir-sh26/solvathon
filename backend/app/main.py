@@ -1,24 +1,13 @@
-<<<<<<< HEAD
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.middleware.cors import CORSMiddleware
-=======
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-# IMPORT auth_ws HERE
-from app.api import auth, auth_ws, tpo, student, resume, analytics, bot, interview
->>>>>>> ajay
 
-# --- IMPORT ALL ROUTERS HERE ---
-from app.api import recruiter 
-from app.api import student  # <-- NEW: Import student router
-from app.api import resume   # <-- NEW: Import resume router
+# --- IMPORT ALL ROUTERS ---
+from app.api import recruiter, student, resume, auth, auth_ws, tpo, analytics, bot, interview
 
-<<<<<<< HEAD
 app = FastAPI(title="PlacementPro API")
 
-# --- 1. CORS SETUP ---
-=======
+# --- 1. GLOBAL EXCEPTION HANDLER ---
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     print(f"GLOBAL ERROR: {str(exc)}")
@@ -32,8 +21,8 @@ async def global_exception_handler(request: Request, exc: Exception):
         }
     )
 
+# --- 2. CORS SETUP ---
 print("DEBUG: Initializing CORS with unrestricted origins (*)")
->>>>>>> ajay
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -42,9 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- 2. WEBSOCKET STATE & MANAGER (Fixes the TPO Alerts!) ---
-
-# In-memory database for the hackathon
+# --- 3. WEBSOCKET STATE & MANAGER ---
 approved_users = [{"email": "admin@college.edu", "role": "TPO"}]
 pending_users = []
 
@@ -55,7 +42,6 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
-        # Instantly send the current state to the new connection
         await self.broadcast_state()
 
     def disconnect(self, websocket: WebSocket):
@@ -63,7 +49,6 @@ class ConnectionManager:
             self.active_connections.remove(websocket)
 
     async def broadcast_state(self):
-        """Sends the live user lists to ALL connected dashboards (TPO & Auth screens)"""
         state_message = {
             "type": "STATE_UPDATE",
             "approvedUsers": approved_users,
@@ -73,7 +58,6 @@ class ConnectionManager:
             try:
                 await connection.send_json(state_message)
             except RuntimeError:
-                # Connection dropped mid-send
                 pass
 
 manager = ConnectionManager()
@@ -83,10 +67,7 @@ async def websocket_auth_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            # 1. Catch the data
             data = await websocket.receive_json()
-            
-            # 2. PRINT IT so we can see it in the terminal!
             print(f"🟢 WEBSOCKET RECEIVED: {data}")
             
             msg_type = data.get("type")
@@ -123,15 +104,14 @@ async def websocket_auth_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
         print(f"❌ WEBSOCKET CRASHED: {e}")
 
-
-# --- 3. REGISTER ALL API ROUTERS ---
-# (This fixes the 404 errors for the Student Portal!)
+# --- 4. REGISTER ALL API ROUTERS ---
 app.include_router(recruiter.router, prefix="/api/recruiter", tags=["Recruiter"])
-app.include_router(student.router, prefix="/api/student", tags=["Student"]) # <-- NEW
-app.include_router(resume.router, prefix="/api/resume", tags=["Resume"])    # <-- NEW
+app.include_router(student.router, prefix="/api/student", tags=["Student"])
+app.include_router(resume.router, prefix="/api/resume", tags=["Resume"])
+# Add other routers from your import list as needed
+# app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 
-
-# --- 4. ROOT ENDPOINT ---
+# --- 5. ROOT ENDPOINT ---
 @app.get("/")
 async def root():
     return {"message": "PlacementPro Backend is Live. WebSockets active."}

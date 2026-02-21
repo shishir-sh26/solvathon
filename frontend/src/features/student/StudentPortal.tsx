@@ -48,8 +48,7 @@ export default function StudentPortal() {
   });
 
   // Use real student ID from auth (set during login), fallback to mock for dev
-  const mockId = localStorage.getItem('currentUserId') || "00000000-0000-0000-0000-000000000000";
-
+const mockId = localStorage.getItem('currentUserId') || "00000000-0000-0000-0000-000000000000";
   // --- TEAMMATE'S CODE: Fetch Profile ---
   React.useEffect(() => {
     const fetchProfile = async () => {
@@ -324,10 +323,8 @@ export default function StudentPortal() {
               </div>
             </div>
           )}
+          {/* ---> FIX: ADDED MISSING CLOSING TAGS FOR DASHBOARD VIEW HERE <--- */}
 
-<<<<<<< HEAD
-          {/* VIEW: LEARN & GROW */}
-=======
           {/* VIEW: PLACEMENTS (JOB BOARD) */}
           {activeTab === 'placements' && (
             <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -421,7 +418,6 @@ export default function StudentPortal() {
               </div>
             </div>
           )}
-
 
           {/* VIEW: APPLICATION TRACK (STUDENT IMPROVEMENT) */}
           {activeTab === 'applications' && (
@@ -580,7 +576,6 @@ export default function StudentPortal() {
             </div>
           )}
 
-          {/* --- NEW VIEW: LEARN & GROW --- */}
           {/* VIEW: SKILL IMPROVEMENT (LEARNING ANALYSIS) */}
           {activeTab === 'skills' && (
             <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -816,7 +811,6 @@ export default function StudentPortal() {
             </div>
           )}
 
->>>>>>> ajay
           {activeTab === 'learning' && (
             <div className="max-w-7xl mx-auto animate-in fade-in duration-300">
               <SkillSuggestions />
