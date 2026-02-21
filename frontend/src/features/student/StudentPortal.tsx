@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Bell, Search, User, Briefcase, Video, FileText,
   Youtube, TrendingUp, CheckCircle, Users, Calendar as CalendarIcon, UploadCloud,
-  ChevronRight, LogOut, Settings, X, Target, ArrowRight, AlertCircle, Phone, Award, GraduationCap, Brain
+  ChevronRight, LogOut, Settings, X, Target, ArrowRight, AlertCircle, Phone, Award, GraduationCap, Brain as BrainIcon
 } from 'lucide-react';
 
 // Import your Chatbot component
@@ -47,8 +47,8 @@ export default function StudentPortal() {
     certifications: '',
   });
 
-  // Mock ID for current development session
-  const mockId = "00000000-0000-0000-0000-000000000000";
+  // Use real student ID from auth (set during login), fallback to mock for dev
+  const mockId = localStorage.getItem('currentUserId') || "00000000-0000-0000-0000-000000000000";
 
   React.useEffect(() => {
     const fetchProfile = async () => {
@@ -683,7 +683,7 @@ export default function StudentPortal() {
                   </div>
 
                   <div className="mt-8 p-4 bg-yellow-50 border-2 border-yellow-600 flex items-start">
-                    <Brain className="w-5 h-5 mr-3 mt-0.5 text-yellow-700" />
+                    <BrainIcon className="w-5 h-5 mr-3 mt-0.5 text-yellow-700" />
                     <div>
                       <div className="text-[10px] font-black uppercase text-yellow-700">AI Recommendation</div>
                       <p className="text-[10px] font-bold italic mt-1 leading-relaxed">
